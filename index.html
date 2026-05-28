@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    color: #8b949e;
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+  .calendar-wrap {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 32px 28px 20px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .month-labels {
+    display: flex;
+    margin-left: 40px;
+    margin-bottom: 4px;
+  }
+  .month-label {
+    font-size: 11px;
+    color: #8b949e;
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+  }
+  .grid-container {
+    display: flex;
+    gap: 3px;
+  }
+  .day-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-right: 6px;
+    padding-top: 0;
+  }
+  .day-label {
+    height: 13px;
+    font-size: 10px;
+    color: #8b949e;
+    line-height: 13px;
+    text-align: right;
+    padding-right: 4px;
+    width: 32px;
+  }
+  .day-label.empty {
+    visibility: hidden;
+  }
+  .grid {
+    display: flex;
+    gap: 3px;
+  }
+  .week {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .day {
+    width: 13px;
+    height: 13px;
+    border-radius: 2px;
+    background: #21262d;
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: transform 0.1s, border-color 0.15s;
+    cursor: default;
+    position: relative;
+  }
+  .day.filled-1 { background: #0e4429; border-color: rgba(14,68,41,0.6); }
+  .day.filled-2 { background: #006d32; border-color: rgba(0,109,50,0.6); }
+  .day.filled-3 { background: #26a641; border-color: rgba(38,166,65,0.6); }
+  .day.filled-4 { background: #39d353; border-color: rgba(57,211,83,0.6); }
+  .day.today {
+    border: 2px solid #f0883e;
+    box-shadow: 0 0 6px rgba(240,136,62,0.4);
+  }
+  .day:hover {
+    transform: scale(1.75);
+    z-index: 10;
+  }
+  .day:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1c2128;
+    color: #e6edf3;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    border: 1px solid #30363d;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    justify-content: flex-end;
+    font-size: 11px;
+    color: #8b949e;
+  }
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+  .legend-swatch.l0 { background: #21262d; }
+  .legend-swatch.l1 { background: #0e4429; }
+  .legend-swatch.l2 { background: #006d32; }
+  .legend-swatch.l3 { background: #26a641; }
+  .legend-swatch.l4 { background: #39d353; }
+
+  .stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #8b949e;
+  }
+  .stats span { color: #39d353; font-weight: 600; }
+
+  footer {
+    margin-top: 40px;
+    font-size: 12px;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>📅 2026</h1>
+<p class="subtitle">一年 365 天，每一天都是一个小格子</p>
+
+<div class="calendar-wrap">
+  <div class="month-labels" id="monthLabels"></div>
+  <div class="grid-container">
+    <div class="day-labels" id="dayLabels">
+      <div class="day-label">一</div>
+      <div class="day-label">三</div>
+      <div class="day-label empty"></div>
+      <div class="day-label">五</div>
+      <div class="day-label empty"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="legend">
+    <span>少</span>
+    <div class="legend-swatch l0"></div>
+    <div class="legend-swatch l1"></div>
+    <div class="legend-swatch l2"></div>
+    <div class="legend-swatch l3"></div>
+    <div class="legend-swatch l4"></div>
+    <span>多</span>
+  </div>
+  <div class="stats">
+    已过 <span id="daysPassed">0</span> 天
+    · 剩余 <span id="daysRemaining">0</span> 天
+  </div>
+</div>
+
+<footer>
+  <a href="https://github.com/Aprilssky/2026">Aprilssky/2026</a> · 灵感源自 GitHub 贡献图
+</footer>
+
+<script>
+(function() {
+  const YEAR = 2026;
+  const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
+
+  // Find the first Sunday on or before Jan 1
+  const jan1 = new Date(YEAR, 0, 1);
+  const startDow = jan1.getDay(); // 0=Sun
+  const startDate = new Date(jan1);
+  startDate.setDate(jan1.getDate() - startDow); // go back to Sunday
+
+  // Last Saturday on or after Dec 31
+  const dec31 = new Date(YEAR, 11, 31);
+  const endDow = dec31.getDay();
+  const endDate = new Date(dec31);
+  endDate.setDate(dec31.getDate() + (6 - endDow)); // go forward to Saturday
+
+  const today = new Date();
+  // Normalize today to midnight
+  const todayNorm = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  // Count days in range
+  const totalDays = Math.round((endDate - startDate) / (24*60*60*1000)) + 1;
+  const weeks = Math.ceil(totalDays / 7);
+
+  // Generate month labels
+  const monthLabels = document.getElementById('monthLabels');
+  let labelSpans = '';
+  let currentMonth = -1;
+  for (let w = 0; w < weeks; w++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + w * 7);
+    const m = d.getMonth();
+    if (m !== currentMonth) {
+      currentMonth = m;
+      labelSpans += `<div class="month-label">${m + 1}月</div>`;
+    } else {
+      labelSpans += `<div class="month-label"></div>`;
+    }
+  }
+  monthLabels.innerHTML = labelSpans;
+
+  // Generate grid
+  const gridEl = document.getElementById('grid');
+  let daysPassed = 0;
+  let daysFuture = 0;
+
+  for (let w = 0; w < weeks; w++) {
+    let weekHtml = '<div class="week">';
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + w * 7 + d);
+
+      const dateNorm = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const diffDays = Math.round((dateNorm - todayNorm) / (24*60*60*1000));
+
+      const dayOfMonth = date.getDate();
+      const month = date.getMonth() + 1;
+      const year2 = date.getFullYear();
+
+      const isIn2026 = (date.getFullYear() === YEAR);
+      // Skip cells that are in 2025 or 2027 (before Jan 1 or after Dec 31)
+      // But we still render them as empty, they just won't count
+
+      // Determine fill level based on how early in the year (past dates)
+      let fillClass = '';
+      let countDay = false;
+
+      if (date.getFullYear() < YEAR) {
+        // Before 2026 - leave empty
+        fillClass = '';
+      } else if (date.getFullYear() > YEAR) {
+        // After 2026 - leave empty
+        fillClass = '';
+      } else {
+        // In 2026
+        countDay = true;
+        if (diffDays < 0) {
+          // Past
+          daysPassed++;
+          // Calculate how far into the year (0..1)
+          const startOfYear = new Date(YEAR, 0, 1);
+          const endOfYear = new Date(YEAR, 11, 31);
+          const yearProgress = (dateNorm - startOfYear) / (endOfYear - startOfYear);
+          // Map to fill level 1-4
+          const level = Math.min(4, Math.max(1, Math.floor(yearProgress * 4) + 1));
+          fillClass = `filled-${level}`;
+        } else if (diffDays === 0) {
+          // Today
+          daysPassed++;
+          fillClass = 'filled-4 today';
+        } else {
+          // Future
+          daysFuture++;
+          fillClass = '';
+        }
+      }
+
+      if (countDay === false && date.getFullYear() === YEAR) {
+        // Still count but don't fill
+      }
+
+      const tooltip = `${year2}年${month}月${dayOfMonth}日${diffDays === 0 ? ' · 今天' : ''}`;
+      weekHtml += `<div class="day ${fillClass}" data-tooltip="${tooltip}"></div>`;
+    }
+    weekHtml += '</div>';
+    gridEl.innerHTML += weekHtml;
+  }
+
+  // Only count days actually in 2026
+  const firstDay2026 = new Date(YEAR, 0, 1);
+  const lastDay2026 = new Date(YEAR, 11, 31);
+  const total2026 = 365;
+  const actualPassed = Math.min(total2026, Math.max(0, Math.round((todayNorm - firstDay2026) / (24*60*60*1000)) + 1));
+  // But we already counted, let's be more precise
+  // Recalculate: days from Jan 1 to today (inclusive) that are in 2026
+  let correctPassed = 0;
+  for (let d = 0; d < total2026; d++) {
+    const date = new Date(YEAR, 0, 1 + d);
+    const dateNorm = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const diff = Math.round((todayNorm - dateNorm) / (24*60*60*1000));
+    if (diff >= 0) correctPassed++;
+  }
+
+  document.getElementById('daysPassed').textContent = correctPassed;
+  document.getElementById('daysRemaining').textContent = total2026 - correctPassed;
+})();
+</script>
+
+</body>
+</html>
