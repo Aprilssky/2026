@@ -16,7 +16,6 @@
     align-items: center;
     padding: 20px 8px 32px;
   }
-
   h1 {
     font-size: clamp(18px, 5vw, 28px);
     font-weight: 600;
@@ -77,7 +76,6 @@
     white-space: nowrap;
     user-select: none;
     -webkit-user-select: none;
-    flex-shrink: 0;
     line-height: 1;
   }
 
@@ -97,7 +95,6 @@
 
   .day {
     width: 100%;
-    aspect-ratio: 1;
     border-radius: 2px;
     background: #21262d;
     border: 1px solid rgba(255,255,255,0.04);
@@ -105,13 +102,13 @@
     cursor: default;
     transition: transform 0.12s ease, border-color 0.15s;
     -webkit-tap-highlight-color: transparent;
-    flex: none;
+    flex: 1;
+    min-height: 0;
   }
   .day.filled { background: #1f6f3a; border-color: rgba(31,111,58,0.5); }
   .day.filled-2 { background: #238636; border-color: rgba(35,134,54,0.5); }
   .day.filled-3 { background: #2ea043; border-color: rgba(46,160,67,0.5); }
   .day.filled-4 { background: #3fb950; border-color: rgba(63,185,80,0.5); }
-
   .day.today {
     border-color: #f0883e;
     box-shadow: 0 0 0 2px rgba(240,136,62,0.35);
@@ -192,12 +189,10 @@
     <div class="month-row-spacer"></div>
     <div class="month-track" id="monthTrack"></div>
   </div>
-
   <div class="grid-body">
     <div class="day-labels" id="dayLabels"></div>
     <div class="grid" id="grid"></div>
   </div>
-
   <div class="legend">
     <span>少</span>
     <div class="legend-swatch l0"></div>
@@ -207,13 +202,10 @@
     <div class="legend-swatch l4"></div>
     <span>多</span>
   </div>
-
   <div class="stats" id="stats"></div>
 </div>
 
-<footer>
-  <a href="https://github.com/Aprilssky/2026">Aprilssky/2026</a>
-</footer>
+<footer><a href="https://github.com/Aprilssky/2026">Aprilssky/2026</a></footer>
 
 <script>
 (function() {
@@ -221,18 +213,16 @@
 
   const YEAR = 2026;
   const DAY_LABELS = ['日', '一', '二', '三', '四', '五', '六'];
+  const GAP = 3;
 
   const jan1 = new Date(YEAR, 0, 1);
   const dec31 = new Date(YEAR, 11, 31);
-
   const startDow = jan1.getDay();
   const startDate = new Date(jan1);
   startDate.setDate(jan1.getDate() - startDow);
-
   const endDow = dec31.getDay();
   const endDate = new Date(dec31);
   endDate.setDate(dec31.getDate() + (6 - endDow));
-
   const totalDays = Math.round((endDate - startDate) / 864e5) + 1;
   const weeks = Math.ceil(totalDays / 7);
 
@@ -241,7 +231,6 @@
 
   /* ── month labels ── */
   const monthTrack = document.getElementById('monthTrack');
-
   const monthStartWeek = {};
   const monthWeekCount = {};
   for (let w = 0; w < weeks; w++) {
@@ -249,48 +238,53 @@
     midDate.setDate(startDate.getDate() + w * 7 + 3);
     const y = midDate.getFullYear();
     let m;
-    if (y === YEAR) {
-      m = midDate.getMonth() + 1;
-    } else if (y < YEAR && midDate.getDate() >= 28) {
-      m = 1;
-    } else {
-      continue;
-    }
+    if (y === YEAR) { m = midDate.getMonth() + 1; }
+    else if (y < YEAR && midDate.getDate() >= 28) { m = 1; }
+    else { continue; }
     if (!(m in monthStartWeek)) monthStartWeek[m] = w;
     monthWeekCount[m] = (monthWeekCount[m] || 0) + 1;
   }
-
   let monthHtml = '';
   for (let m = 1; m <= 12; m++) {
-    const count = monthWeekCount[m] || 0;
-    if (count > 0) {
+    if ((monthWeekCount[m] || 0) > 0)
       monthHtml += `<span class="month-label" data-month="${m}">${m}月</span>`;
-    }
   }
   monthTrack.innerHTML = monthHtml;
 
   /* ── day labels ── */
-  const dayLabelsEl = document.getElementById('dayLabels');
-  dayLabelsEl.innerHTML = DAY_LABELS.map(label =>
-    `<div class="day-label">${label}</div>`
+  document.getElementById('dayLabels').innerHTML = DAY_LABELS.map(l =>
+    `<div class="day-label">${l}</div>`
   ).join('');
+
+  /* ── Pre-calculate cell height ── */
+  // We'll set grid height to be proportional to width
+  // cell height = grid height / 7 minus gaps
+  function computeCellHeight() {
+    const wrap = document.querySelector('.calendar-wrap');
+    if (!wrap) return 10;
+    const labelsEl = document.getElementById('dayLabels');
+    const labelsW = labelsEl.offsetWidth || 30;
+    const gridEl = document.getElementById('grid');
+    // Available width = wrap inner - padding
+    const wrapW = wrap.clientWidth - 16; // padding 8+8
+    const availW = wrapW - labelsW - GAP; // minus labels and body gap
+    if (availW <= 0) return 10;
+    const colW = Math.floor((availW - (weeks - 1) * GAP) / weeks);
+    return Math.max(6, Math.min(colW, 24));
+  }
+
+  const cellSize = computeCellHeight();
 
   /* ── build grid ── */
   const gridEl = document.getElementById('grid');
   let passed = 0;
   let future = 0;
-
   const startOfYear = new Date(YEAR, 0, 1);
   const endOfYear = new Date(YEAR, 11, 31);
 
-  // Pre-calculate cell size so grid renders at right size
-  function calcCellSize() {
-    const wrap = document.querySelector('.calendar-wrap');
-    if (!wrap) return null;
-    const wrapEl = document.querySelector('.grid');
-    if (!wrapEl) return null;
-    // We'll set cell size later after rendering
-  }
+  // Set grid height so cells fill vertically
+  const gridH = cellSize * 7 + GAP * 6;
+  gridEl.style.minHeight = gridH + 'px';
 
   for (let w = 0; w < weeks; w++) {
     let weekHtml = '<div class="week">';
@@ -299,20 +293,15 @@
       date.setDate(startDate.getDate() + w * 7 + d);
       const dateNorm = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const diff = Math.round((dateNorm - today) / 864e5);
-
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
       const day = date.getDate();
 
       let fillClass = '';
       let tip = '';
-
-      if (year < YEAR) {
-        // pre-2026 padding
-      } else if (year > YEAR) {
-        // post-2026 padding
-      } else {
-        // In 2026
+      if (year < YEAR) { /* pre-2026 */ }
+      else if (year > YEAR) { /* post-2026 */ }
+      else {
         if (diff < 0) {
           passed++;
           const progress = (dateNorm - startOfYear) / (endOfYear - startOfYear);
@@ -321,14 +310,10 @@
         } else if (diff === 0) {
           passed++;
           fillClass = 'filled-4 today';
-        } else {
-          future++;
-        }
+        } else { future++; }
         tip = `${year}年${month}月${day}日${diff === 0 ? ' · 今天' : ''}`;
       }
-
-      weekHtml +=
-        `<div class="day ${fillClass}" data-date="${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}"><span class="tip">${tip}</span></div>`;
+      weekHtml += `<div class="day ${fillClass}" data-date="${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}"><span class="tip">${tip}</span></div>`;
     }
     weekHtml += '</div>';
     gridEl.innerHTML += weekHtml;
@@ -340,13 +325,13 @@
     ` · 今天 <span class="num today-num">第 ${passed} 天</span>` +
     ` · 剩余 <span class="num">${365 - passed}</span> 天`;
 
-  /* ── sync label height to actual cell height ── */
+  /* ── sync day-label height ── */
   function syncHeights() {
-    const firstFilled = document.querySelector('.day.filled-1, .day.filled-2, .day.filled-3, .day.filled-4, .day');
-    if (!firstFilled) return;
-    const h = firstFilled.offsetHeight;
+    const firstDay = document.querySelector('.week .day');
+    if (!firstDay) return;
+    const h = firstDay.offsetHeight;
     if (h > 0) {
-      document.querySelectorAll('.day-label').forEach(el => el.style.height = h + 'px');
+      document.querySelectorAll('.day-label').forEach(el => { el.style.height = h + 'px'; });
     }
   }
   requestAnimationFrame(() => requestAnimationFrame(syncHeights));
@@ -361,11 +346,9 @@
     const firstDay = weekEls[0].querySelector('.day');
     if (!firstDay) return;
     const colW = firstDay.offsetWidth + 3;
-
     const monthStarts = {};
     const monthEnds = {};
     let curMonth = null;
-
     for (let w = 0; w < weekEls.length; w++) {
       const midCell = weekEls[w].children[3];
       if (!midCell) continue;
@@ -394,7 +377,6 @@
       }
     }
     if (curMonth !== null) monthEnds[curMonth] = weekEls.length;
-
     const labels = monthTrack.querySelectorAll('.month-label');
     labels.forEach(label => {
       const m = parseInt(label.getAttribute('data-month'), 10);
@@ -404,7 +386,6 @@
       label.style.width = ((end - start) * colW - 3) + 'px';
     });
   }
-
   requestAnimationFrame(() => requestAnimationFrame(calcMonthLabels));
   window.addEventListener('resize', () => {
     requestAnimationFrame(() => requestAnimationFrame(calcMonthLabels));
@@ -415,23 +396,13 @@
   gridEl.addEventListener('click', function(e) {
     const day = e.target.closest('.day');
     if (!day) return;
-    if (day.classList.contains('show-tip')) {
-      day.classList.remove('show-tip');
-      activeTip = null;
-    } else {
-      if (activeTip) activeTip.classList.remove('show-tip');
-      day.classList.add('show-tip');
-      activeTip = day;
-    }
+    if (day.classList.contains('show-tip')) { day.classList.remove('show-tip'); activeTip = null; }
+    else { if (activeTip) activeTip.classList.remove('show-tip'); day.classList.add('show-tip'); activeTip = day; }
   });
   document.addEventListener('click', function(e) {
-    if (activeTip && !e.target.closest('.day')) {
-      activeTip.classList.remove('show-tip');
-      activeTip = null;
-    }
+    if (activeTip && !e.target.closest('.day')) { activeTip.classList.remove('show-tip'); activeTip = null; }
   });
 })();
 </script>
-
 </body>
 </html>
