@@ -39,7 +39,6 @@
     overflow: hidden;
   }
 
-  /* ── cell size controlled by JS ── */
   :root {
     --cell: 12px;
     --gap: 3px;
@@ -289,7 +288,6 @@
   let passed = 0;
   let future = 0;
 
-  // Pre-calculate progress for fair gradient distribution
   const startOfYear = new Date(YEAR, 0, 1);
   const endOfYear = new Date(YEAR, 11, 31);
 
@@ -309,13 +307,13 @@
       let tip = '';
 
       if (year < YEAR) {
-        // pre-2026 padding — empty
+        // pre-2026 padding
       } else if (year > YEAR) {
-        // post-2026 padding — empty
+        // post-2026 padding
       } else {
         // In 2026
         if (diff < 0) {
-          // Past date → fill green
+          // Past → fill green
           passed++;
           const progress = (dateNorm - startOfYear) / (endOfYear - startOfYear);
           const level = Math.min(4, Math.max(1, Math.floor(progress * 4) + 1));
@@ -349,29 +347,19 @@
     const weekEls = document.querySelectorAll('.week');
     if (!weekEls.length) return;
 
-    // wrap inner width minus padding (12px left + 12px right = 24px)
-    const wrapW = wrap.clientWidth - 24;
-
-    // measure day-labels width
+    const wrapW = wrap.clientWidth - 24; // padding 12+12
     const labelsEl = document.getElementById('dayLabels');
     const labelsW = labelsEl.offsetWidth;
-
-    // remaining width for the grid
-    const gridEl = document.getElementById('grid');
-    const gridGap = 3; // --gap
+    const gridGap = 3;
     const numWeeks = weekEls.length;
-
-    // grid width = gridEl width (width available to columns)
-    // We need: weeks * cellW + (weeks - 1) * gap = gridW
     const gridW = wrapW - labelsW;
 
     const cellW = Math.floor((gridW - (numWeeks - 1) * gridGap) / numWeeks);
-    const cellSize = Math.max(6, Math.min(cellW, 20));
+    const cellSize = Math.max(6, Math.min(cellW, 22));
 
     document.documentElement.style.setProperty('--cell', cellSize + 'px');
   }
 
-  // Run after render
   requestAnimationFrame(() => requestAnimationFrame(resizeCells));
   window.addEventListener('resize', () => {
     requestAnimationFrame(() => requestAnimationFrame(resizeCells));
