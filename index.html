@@ -39,8 +39,6 @@
     overflow: hidden;
   }
 
-  .gap-3 { --gap: 3px; }
-
   .month-row {
     display: flex;
     margin-bottom: 3px;
@@ -72,7 +70,6 @@
     flex-shrink: 0;
   }
   .day-label {
-    height: auto;
     font-size: clamp(7px, 2vw, 10px);
     color: #8b949e;
     text-align: right;
@@ -81,6 +78,7 @@
     user-select: none;
     -webkit-user-select: none;
     flex-shrink: 0;
+    line-height: 1;
   }
 
   .grid {
@@ -97,14 +95,8 @@
     min-width: 0;
   }
 
-  .day-wrapper {
-    width: 100%;
-    flex: 1;
-    min-height: 0;
-  }
   .day {
     width: 100%;
-    aspect-ratio: 1;
     border-radius: 2px;
     background: #21262d;
     border: 1px solid rgba(255,255,255,0.04);
@@ -112,6 +104,8 @@
     cursor: default;
     transition: transform 0.12s ease, border-color 0.15s;
     -webkit-tap-highlight-color: transparent;
+    flex: 1;
+    min-height: 0;
   }
   .day.filled { background: #1f6f3a; border-color: rgba(31,111,58,0.5); }
   .day.filled-2 { background: #238636; border-color: rgba(35,134,54,0.5); }
@@ -289,6 +283,15 @@
   const startOfYear = new Date(YEAR, 0, 1);
   const endOfYear = new Date(YEAR, 11, 31);
 
+  // Pre-calculate cell size so grid renders at right size
+  function calcCellSize() {
+    const wrap = document.querySelector('.calendar-wrap');
+    if (!wrap) return null;
+    const wrapEl = document.querySelector('.grid');
+    if (!wrapEl) return null;
+    // We'll set cell size later after rendering
+  }
+
   for (let w = 0; w < weeks; w++) {
     let weekHtml = '<div class="week">';
     for (let d = 0; d < 7; d++) {
@@ -325,7 +328,7 @@
       }
 
       weekHtml +=
-        `<div class="day-wrapper"><div class="day ${fillClass}" data-date="${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}"><span class="tip">${tip}</span></div></div>`;
+        `<div class="day ${fillClass}" data-date="${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}"><span class="tip">${tip}</span></div>`;
     }
     weekHtml += '</div>';
     gridEl.innerHTML += weekHtml;
@@ -337,32 +340,35 @@
     ` · 今天 <span class="num today-num">第 ${passed} 天</span>` +
     ` · 剩余 <span class="num">${365 - passed}</span> 天`;
 
-  /* ── sync day-label height to cell height ── */
-  function syncLabelHeights() {
-    const firstDay = document.querySelector('.day');
-    if (!firstDay) return;
-    const h = firstDay.offsetHeight;
-    document.querySelectorAll('.day-label').forEach(el => el.style.height = h + 'px');
+  /* ── sync label height to cell height (preserve 7 equal rows) ── */
+  function syncHeights() {
+    const grid = document.getElementById('grid');
+    const gridH = grid.offsetHeight;
+    const gapTotal = 6 * 3; // 7 rows, 6 gaps
+    const cellH = (gridH - gapTotal) / 7;
+    if (cellH > 0) {
+      document.querySelectorAll('.day-label').forEach(el => el.style.height = cellH + 'px');
+    }
   }
-  requestAnimationFrame(() => requestAnimationFrame(syncLabelHeights));
+  requestAnimationFrame(() => requestAnimationFrame(syncHeights));
   window.addEventListener('resize', () => {
-    requestAnimationFrame(() => requestAnimationFrame(syncLabelHeights));
+    requestAnimationFrame(() => requestAnimationFrame(syncHeights));
   });
 
   /* ── month label widths ── */
   function calcMonthLabels() {
     const weekEls = document.querySelectorAll('.week');
     if (!weekEls.length) return;
-    const firstCell = weekEls[0].querySelector('.day-wrapper');
-    if (!firstCell) return;
-    const colW = firstCell.offsetWidth + 3; // cell width + gap
+    const firstDay = weekEls[0].querySelector('.day');
+    if (!firstDay) return;
+    const colW = firstDay.offsetWidth + 3;
 
     const monthStarts = {};
     const monthEnds = {};
     let curMonth = null;
 
     for (let w = 0; w < weekEls.length; w++) {
-      const midCell = weekEls[w].querySelector('.day-wrapper:nth-child(4) .day');
+      const midCell = weekEls[w].children[3];
       if (!midCell) continue;
       const d = midCell.getAttribute('data-date');
       if (!d) continue;
