@@ -14,51 +14,45 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24px 12px 40px;
+    padding: 20px 8px 32px;
   }
 
   h1 {
-    font-size: clamp(20px, 5vw, 30px);
+    font-size: clamp(18px, 5vw, 28px);
     font-weight: 600;
     letter-spacing: 1px;
     margin-bottom: 2px;
   }
   .subtitle {
     color: #8b949e;
-    font-size: clamp(11px, 3vw, 14px);
-    margin-bottom: 16px;
+    font-size: clamp(10px, 3vw, 13px);
+    margin-bottom: 12px;
   }
 
   .calendar-wrap {
     background: #161b22;
     border: 1px solid #30363d;
-    border-radius: 10px;
-    padding: 16px 12px 14px;
+    border-radius: 8px;
+    padding: 12px 8px 10px;
     width: 100%;
     max-width: 920px;
     overflow: hidden;
   }
 
-  :root {
-    --cell: 12px;
-    --gap: 3px;
-  }
+  .gap-3 { --gap: 3px; }
 
   .month-row {
     display: flex;
     margin-bottom: 3px;
   }
-  .month-row-spacer {
-    width: 32px;
-    flex-shrink: 0;
-  }
+  .month-row-spacer { width: 30px; flex-shrink: 0; }
   .month-track {
     display: flex;
     flex: 1;
     min-width: 0;
   }
   .month-label {
-    font-size: clamp(9px, 2.4vw, 11px);
+    font-size: clamp(8px, 2.2vw, 11px);
     color: #8b949e;
     text-align: left;
     white-space: nowrap;
@@ -67,45 +61,50 @@
 
   .grid-body {
     display: flex;
-    gap: var(--gap);
+    gap: 3px;
   }
 
   .day-labels {
     display: flex;
     flex-direction: column;
-    gap: var(--gap);
-    width: 32px;
+    gap: 3px;
+    width: 30px;
     flex-shrink: 0;
   }
   .day-label {
-    height: var(--cell);
-    font-size: clamp(8px, 2.2vw, 10px);
+    height: auto;
+    font-size: clamp(7px, 2vw, 10px);
     color: #8b949e;
-    line-height: var(--cell);
     text-align: right;
     padding-right: 4px;
     white-space: nowrap;
     user-select: none;
     -webkit-user-select: none;
+    flex-shrink: 0;
   }
 
   .grid {
     display: flex;
-    gap: var(--gap);
+    gap: 3px;
     flex: 1;
     min-width: 0;
   }
   .week {
     display: flex;
     flex-direction: column;
-    gap: var(--gap);
+    gap: 3px;
     flex: 1;
     min-width: 0;
   }
 
+  .day-wrapper {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+  }
   .day {
-    width: var(--cell);
-    height: var(--cell);
+    width: 100%;
+    aspect-ratio: 1;
     border-radius: 2px;
     background: #21262d;
     border: 1px solid rgba(255,255,255,0.04);
@@ -113,7 +112,6 @@
     cursor: default;
     transition: transform 0.12s ease, border-color 0.15s;
     -webkit-tap-highlight-color: transparent;
-    flex-shrink: 0;
   }
   .day.filled { background: #1f6f3a; border-color: rgba(31,111,58,0.5); }
   .day.filled-2 { background: #238636; border-color: rgba(35,134,54,0.5); }
@@ -129,7 +127,7 @@
   .day .tip {
     display: none;
     position: absolute;
-    bottom: calc(100% + 5px);
+    bottom: calc(100% + 4px);
     left: 50%;
     transform: translateX(-50%);
     background: #1c2128;
@@ -144,7 +142,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
   @media (hover: hover) {
-    .day:hover { transform: scale(1.7); z-index: 10; }
+    .day:hover { transform: scale(1.6); z-index: 10; }
     .day:hover .tip { display: block; }
   }
   .day.show-tip { z-index: 10; }
@@ -153,15 +151,15 @@
   .legend {
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin-top: 12px;
+    gap: 4px;
+    margin-top: 10px;
     justify-content: flex-end;
-    font-size: clamp(9px, 2.4vw, 11px);
+    font-size: clamp(8px, 2.2vw, 11px);
     color: #8b949e;
   }
   .legend-swatch {
-    width: var(--cell);
-    height: var(--cell);
+    width: 12px;
+    height: 12px;
     border-radius: 2px;
     flex-shrink: 0;
   }
@@ -173,22 +171,21 @@
 
   .stats {
     display: flex;
-    gap: clamp(10px, 4vw, 24px);
-    margin-top: 10px;
-    font-size: clamp(11px, 2.8vw, 13px);
+    gap: clamp(8px, 3vw, 20px);
+    margin-top: 8px;
+    font-size: clamp(10px, 2.5vw, 13px);
     color: #8b949e;
   }
   .stats .num { color: #3fb950; font-weight: 600; }
   .stats .num.today-num { color: #f0883e; }
 
   footer {
-    margin-top: 28px;
-    font-size: clamp(10px, 2.4vw, 12px);
+    margin-top: 24px;
+    font-size: clamp(9px, 2.2vw, 12px);
     color: #484f58;
     text-align: center;
   }
   footer a { color: #58a6ff; text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -279,7 +276,8 @@
   monthTrack.innerHTML = monthHtml;
 
   /* ── day labels ── */
-  document.getElementById('dayLabels').innerHTML = DAY_LABELS.map(label =>
+  const dayLabelsEl = document.getElementById('dayLabels');
+  dayLabelsEl.innerHTML = DAY_LABELS.map(label =>
     `<div class="day-label">${label}</div>`
   ).join('');
 
@@ -313,13 +311,11 @@
       } else {
         // In 2026
         if (diff < 0) {
-          // Past → fill green
           passed++;
           const progress = (dateNorm - startOfYear) / (endOfYear - startOfYear);
           const level = Math.min(4, Math.max(1, Math.floor(progress * 4) + 1));
           fillClass = `filled-${level}`;
         } else if (diff === 0) {
-          // Today
           passed++;
           fillClass = 'filled-4 today';
         } else {
@@ -328,7 +324,8 @@
         tip = `${year}年${month}月${day}日${diff === 0 ? ' · 今天' : ''}`;
       }
 
-      weekHtml += `<div class="day ${fillClass}" data-date="${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}"><span class="tip">${tip}</span></div>`;
+      weekHtml +=
+        `<div class="day-wrapper"><div class="day ${fillClass}" data-date="${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}"><span class="tip">${tip}</span></div></div>`;
     }
     weekHtml += '</div>';
     gridEl.innerHTML += weekHtml;
@@ -340,45 +337,32 @@
     ` · 今天 <span class="num today-num">第 ${passed} 天</span>` +
     ` · 剩余 <span class="num">${365 - passed}</span> 天`;
 
-  /* ── cell sizing: fill width, no scroll ── */
-  function resizeCells() {
-    const wrap = document.querySelector('.calendar-wrap');
-    if (!wrap) return;
-    const weekEls = document.querySelectorAll('.week');
-    if (!weekEls.length) return;
-
-    const wrapW = wrap.clientWidth - 24; // padding 12+12
-    const labelsEl = document.getElementById('dayLabels');
-    const labelsW = labelsEl.offsetWidth;
-    const gridGap = 3;
-    const numWeeks = weekEls.length;
-    const gridW = wrapW - labelsW;
-
-    const cellW = Math.floor((gridW - (numWeeks - 1) * gridGap) / numWeeks);
-    const cellSize = Math.max(6, Math.min(cellW, 22));
-
-    document.documentElement.style.setProperty('--cell', cellSize + 'px');
+  /* ── sync day-label height to cell height ── */
+  function syncLabelHeights() {
+    const firstDay = document.querySelector('.day');
+    if (!firstDay) return;
+    const h = firstDay.offsetHeight;
+    document.querySelectorAll('.day-label').forEach(el => el.style.height = h + 'px');
   }
-
-  requestAnimationFrame(() => requestAnimationFrame(resizeCells));
+  requestAnimationFrame(() => requestAnimationFrame(syncLabelHeights));
   window.addEventListener('resize', () => {
-    requestAnimationFrame(() => requestAnimationFrame(resizeCells));
+    requestAnimationFrame(() => requestAnimationFrame(syncLabelHeights));
   });
 
   /* ── month label widths ── */
   function calcMonthLabels() {
     const weekEls = document.querySelectorAll('.week');
     if (!weekEls.length) return;
-    const cellSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell'), 10) || 12;
-    const gap = 3;
-    const colW = cellSize + gap;
+    const firstCell = weekEls[0].querySelector('.day-wrapper');
+    if (!firstCell) return;
+    const colW = firstCell.offsetWidth + 3; // cell width + gap
 
     const monthStarts = {};
     const monthEnds = {};
     let curMonth = null;
 
     for (let w = 0; w < weekEls.length; w++) {
-      const midCell = weekEls[w].children[3];
+      const midCell = weekEls[w].querySelector('.day-wrapper:nth-child(4) .day');
       if (!midCell) continue;
       const d = midCell.getAttribute('data-date');
       if (!d) continue;
@@ -394,10 +378,7 @@
             if (!(1 in monthStarts)) monthStarts[1] = w;
           }
         } else {
-          if (curMonth !== null) {
-            monthEnds[curMonth] = w;
-            curMonth = null;
-          }
+          if (curMonth !== null) { monthEnds[curMonth] = w; curMonth = null; }
         }
         continue;
       }
@@ -415,8 +396,7 @@
       const start = monthStarts[m];
       const end = monthEnds[m];
       if (start === undefined || end === undefined) return;
-      const span = end - start;
-      label.style.width = (span * colW - gap) + 'px';
+      label.style.width = ((end - start) * colW - 3) + 'px';
     });
   }
 
