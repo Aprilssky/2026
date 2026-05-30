@@ -97,6 +97,7 @@
 
   .day {
     width: 100%;
+    aspect-ratio: 1;
     border-radius: 2px;
     background: #21262d;
     border: 1px solid rgba(255,255,255,0.04);
@@ -104,8 +105,7 @@
     cursor: default;
     transition: transform 0.12s ease, border-color 0.15s;
     -webkit-tap-highlight-color: transparent;
-    flex: 1;
-    min-height: 0;
+    flex: none;
   }
   .day.filled { background: #1f6f3a; border-color: rgba(31,111,58,0.5); }
   .day.filled-2 { background: #238636; border-color: rgba(35,134,54,0.5); }
@@ -340,14 +340,13 @@
     ` · 今天 <span class="num today-num">第 ${passed} 天</span>` +
     ` · 剩余 <span class="num">${365 - passed}</span> 天`;
 
-  /* ── sync label height to cell height (preserve 7 equal rows) ── */
+  /* ── sync label height to actual cell height ── */
   function syncHeights() {
-    const grid = document.getElementById('grid');
-    const gridH = grid.offsetHeight;
-    const gapTotal = 6 * 3; // 7 rows, 6 gaps
-    const cellH = (gridH - gapTotal) / 7;
-    if (cellH > 0) {
-      document.querySelectorAll('.day-label').forEach(el => el.style.height = cellH + 'px');
+    const firstFilled = document.querySelector('.day.filled-1, .day.filled-2, .day.filled-3, .day.filled-4, .day');
+    if (!firstFilled) return;
+    const h = firstFilled.offsetHeight;
+    if (h > 0) {
+      document.querySelectorAll('.day-label').forEach(el => el.style.height = h + 'px');
     }
   }
   requestAnimationFrame(() => requestAnimationFrame(syncHeights));
